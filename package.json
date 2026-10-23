@@ -1,0 +1,63 @@
+{
+  "name": "nextjs-woocommerce",
+  "version": "1.2.5",
+  "private": true,
+  "packageManager": "pnpm@12.14.0",
+  "scripts": {
+    "lhci": "lhci autorun",
+    "lhci:perf": "lhci autorun --collect.settings.preset=perf",
+    "lhci:desktop": "lhci autorun --collect.settings.preset=desktop",
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "format": "prettier --write \"**/*.{js,ts,tsx,json}\"",
+    "playwright": "pnpm exec playwright test",
+    "playwright:ui": "pnpm exec playwright test --ui",
+    "playwright:debug": "pnpm exec playwright test --debug",
+    "playwright:codegen": "pnpm exec playwright codegen",
+    "doctor": "echo n | react-doctor --verbose",
+    "doctor:score": "echo n | react-doctor --score",
+    "refresh": "rm -rf node_modules && rm pnpm-lock.yaml && pnpm install && pnpm run format"
+  },
+  "keywords": [
+    "next.js",
+    "portfolio",
+    "next",
+    "javascript",
+    "framer"
+  ],
+  "author": "w3bdesign",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@apollo/client": "^3.14.1",
+    "@types/react": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "graphql": "^17.0.2",
+    "motion": "^14.4.0",
+    "next": "16.4.2",
+    "nprogress": "^0.2.0",
+    "postcss": "~8.5.29",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-hook-form": "^7.83.0",
+    "sharp": "^0.35.5",
+    "uuid": "^14.0.3",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "25.9.9",
+    "@types/nprogress": "^0.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.71.2",
+    "@typescript-eslint/parser": "^8.71.2",
+    "babel-plugin-styled-components": "^2.3.0",
+    "pa11y": "^10.0.0",
+    "postcss-preset-env": "^11.6.1",
+    "prettier": "^3.9.10",
+    "react-doctor": "^0.9.17",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^7.0.2"
+  }
+}

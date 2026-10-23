@@ -1,0 +1,48 @@
+{
+  "extends": [
+    "config:recommended"
+  ],
+  "ignorePresets": [
+    ":prHourlyLimit2",
+    ":prConcurrentLimit20"
+  ],
+  "packageRules": [
+    {
+      "rangeStrategy": "bump",
+      "matchDepTypes": [
+        "dependencies",
+        "devDependencies",
+        "optionalDependencies",
+        "peerDependencies"
+      ]
+    },
+    {
+      "matchUpdateTypes": [
+        "minor",
+        "pin",
+        "digest"
+      ],
+      "automerge": false,
+      "matchDepTypes": [
+        "dependencies",
+        "devDependencies",
+        "optionalDependencies",
+        "peerDependencies"
+      ]
+    },
+    {
+      "matchUpdateTypes": [
+        "patch",
+        "lockFileMaintenance"
+      ],
+      "automerge": false,
+      "matchDepTypes": [
+        "dependencies",
+        "devDependencies",
+        "optionalDependencies",
+        "peerDependencies"
+      ]
+    }
+  ],
+  "minimumReleaseAge": "3 days"
+}

@@ -1,0 +1,200 @@
+// ============================================================================
+// USER REGISTRATION - READY-TO-USE REFERENCE
+// ============================================================================
+//
+// STATUS: Parked. The frontend code below is complete and verified against
+// the backend's schema. It is NOT wired into the app yet because registration
+// depends on a WordPress server setting (see PREREQUISITE).
+//
+// PREREQUISITE (backend, one-time):
+//   WordPress admin -> Settings -> General -> Membership ->
+//   check "Anyone can register".
+//   Until this is enabled, the backend rejects every attempt with:
+//     "User registration is currently not allowed."
+//
+// WHY registerCustomer (NOT registerUser):
+//   For a WooCommerce store we want accounts with the `customer` role (plus
+//   billing/shipping support), NOT plain WordPress subscribers. Verified live
+//   against the backend on 2026-10-14:
+//     - registerUser  -> creates a user with role "subscriber" (wrong for a
+//       shop; it uses WordPress's default new-user role).
+//     - registerCustomer -> creates a proper WooCommerce customer; the new
+//       account logs in successfully via loginWithCookies (status SUCCESS).
+//   Both mutations are exposed; registerCustomer is the correct one here.
+//
+// TO ACTIVATE (once "Anyone can register" is on):
+//   1. Add REGISTER_CUSTOMER to src/utils/gql/GQL_MUTATIONS.ts (see block below).
+//   2. Save the component block below as
+//      src/components/User/UserRegistration.component.tsx.
+//   3. Rename src/pages/registrer.tsx.backup -> src/pages/registrer.tsx.
+//   4. (Optional) Add a "Registrer deg" link to UserLogin.component.tsx.
+//
+// ----------------------------------------------------------------------------
+// 1) GraphQL mutation -> src/utils/gql/GQL_MUTATIONS.ts
+// ----------------------------------------------------------------------------
+
+export const REGISTER_CUSTOMER = gql`
+  mutation RegisterCustomer(
+    $username: String!
+    $email: String!
+    $password: String!
+    $firstName: String
+    $lastName: String
+  ) {
+    registerCustomer(
+      input: {
+        username: $username
+        email: $email
+        password: $password
+        firstName: $firstName
+        lastName: $lastName
+      }
+    ) {
+      customer {
+        id
+        email
+        firstName
+        lastName
+      }
+    }
+  }
+`;
+
+// ----------------------------------------------------------------------------
+// 2) Component -> src/components/User/UserRegistration.component.tsx
+// ----------------------------------------------------------------------------
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useMutation } from '@apollo/client';
+import { useForm, FormProvider } from 'react-hook-form';
+
+import { REGISTER_CUSTOMER } from '@/utils/gql/GQL_MUTATIONS';
+import { InputField } from '../Input/InputField.component';
+import LoadingSpinner from '../LoadingSpinner/LoadingSpinner.component';
+import Button from '../UI/Button.component';
+
+interface IRegistrationData {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+// Maps backend GraphQL error messages to Norwegian user-facing text.
+// The exact strings come from WPGraphQL / WordPress core.
+const getRegisterErrorMessage = (message?: string): string => {
+  switch (message) {
+    case 'User registration is currently not allowed.':
+      // "Anyone can register" is disabled in WordPress settings.
+      return 'Registrering er for øyeblikket ikke tilgjengelig.';
+    case 'existing_user_login':
+      return 'Dette brukernavnet er allerede i bruk.';
+    case 'existing_user_email':
+      return 'Det finnes allerede en konto med denne e-postadressen.';
+    case 'empty_username':
+      return 'Vennligst skriv inn et brukernavn.';
+    case 'empty_email':
+    case 'invalid_email':
+      return 'Vennligst skriv inn en gyldig e-postadresse.';
+    default:
+      return 'Registrering mislyktes. Vennligst prøv igjen.';
+  }
+};
+
+/**
+ * User registration component. Creates a WooCommerce customer account (role
+ * "customer") via the `registerCustomer` mutation, then redirects to login.
+ * @function UserRegistration
+ * @returns {JSX.Element} - Rendered component with registration form
+ */
+const UserRegistration = () => {
+  const methods = useForm<IRegistrationData>();
+  const [error, setError] = useState<string | null>(null);
+  const { push } = useRouter();
+
+  const [registerCustomer, { loading }] = useMutation(REGISTER_CUSTOMER, {
+    onCompleted: () => {
+      push('/logg-inn');
+    },
+    onError: (mutationError) => {
+      setError(
+        getRegisterErrorMessage(mutationError.graphQLErrors?.[0]?.message),
+      );
+    },
+  });
+
+  const onSubmit = (data: IRegistrationData) => {
+    setError(null);
+    registerCustomer({ variables: data });
+  };
+
+  return (
+    <section className="text-text-muted container p-4 py-2 mx-auto mb-32 md:mb-0">
+      <FormProvider {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)}>
+          <div className="mx-auto lg:w-1/2 flex flex-wrap">
+            <InputField
+              inputName="username"
+              inputLabel="Brukernavn"
+              type="text"
+              customValidation={{ required: true }}
+            />
+            <InputField
+              inputName="email"
+              inputLabel="E-post"
+              type="email"
+              customValidation={{ required: true }}
+            />
+            <InputField
+              inputName="password"
+              inputLabel="Passord"
+              type="password"
+              customValidation={{ required: true }}
+            />
+            <InputField
+              inputName="firstName"
+              inputLabel="Fornavn"
+              type="text"
+              customValidation={{ required: true }}
+            />
+            <InputField
+              inputName="lastName"
+              inputLabel="Etternavn"
+              type="text"
+              customValidation={{ required: true }}
+            />
+
+            {error && (
+              <div
+                className="w-full p-2 text-error text-sm text-center"
+                role="alert"
+              >
+                {error}
+              </div>
+            )}
+
+            <div className="w-full p-2">
+              <div className="mt-4 flex justify-center">
+                <Button type="submit" variant="primary" buttonDisabled={loading}>
+                  {loading ? <LoadingSpinner /> : 'Registrer'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="w-full p-2 text-center text-sm">
+              Har du allerede en konto?{' '}
+              <Link href="/logg-inn" className="text-primary hover:underline">
+                Logg inn
+              </Link>
+            </div>
+          </div>
+        </form>
+      </FormProvider>
+    </section>
+  );
+};
+
+export default UserRegistration;
